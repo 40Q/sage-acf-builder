@@ -6,6 +6,7 @@ use Roots\Sage\Container;
 use Roots\Sage\Assets\JsonManifest;
 use Roots\Sage\Template\Blade;
 use Roots\Sage\Template\BladeProvider;
+use StoutLogic\AcfBuilder\FieldsBuilder;
 
 /**
  * Theme assets
@@ -129,4 +130,45 @@ add_action('after_setup_theme', function () {
     sage('blade')->compiler()->directive('asset', function ($asset) {
         return "<?= " . __NAMESPACE__ . "\\asset_path({$asset}); ?>";
     });
+
+    /**
+     * Create a component
+     */
+    sage('blade')->compiler()->component('components.button');
+    sage('blade')->compiler()->component('components.wrapper');
+    sage('blade')->compiler()->component('components.card');
+    sage('blade')->compiler()->component('components.text_group', 'text');
+    sage('blade')->compiler()->component('components.hero_card');
 });
+
+/**
+ * Initialize ACF Builder
+ */
+add_action('init', function () {
+
+    // Register Classes/Controller
+    collect(glob(config('theme.dir').'/app/classes/*.php'))->map(function ($field) {
+        return require_once($field);
+    });
+
+    // Register Fields
+    collect(glob(config('theme.dir').'/app/fields/*.php'))->map(function ($field) {
+        return require_once($field);
+    })->map(function ($fields) {
+        $flexible_content = $fields['page_content']->build();
+        // echo "<pre>";
+        // print_r( $flexible_content['fields'][0]['layouts'] );
+        // echo "</pre>";    
+        foreach( $flexible_content['fields'][0]['layouts'] as $flex ) {
+            Builder\Config::createDynamic($flex['name'], array_column($flex['sub_fields'], 'name'));
+        }
+        foreach ($fields as $field) {
+            
+            if ($field instanceof FieldsBuilder) {
+            
+                acf_add_local_field_group($field->build());
+            }
+        }
+    });
+
+}, 12);
