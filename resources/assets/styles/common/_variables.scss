@@ -1,6 +1,10 @@
 /** Import Bootstrap functions */
 @import "~bootstrap/scss/functions";
 
-$theme-colors: (
-  primary: #525ddc
-);
+$theme-colors: (primary: #525ddc);
+
+/**
+** Prevent Bootstrap error on yarn:build
+*/
+$navbar-dark-toggler-icon-bg: none;
+$navbar-light-toggler-icon-bg: none;
