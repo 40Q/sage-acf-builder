@@ -4,7 +4,7 @@
 $theme-colors: (primary: #525ddc);
 
 /**
-** Prevent Bootstrap error on yarn:build
+** Prevent Bootstrap error on yarn build:production
 */
 $navbar-dark-toggler-icon-bg: none;
 $navbar-light-toggler-icon-bg: none;
