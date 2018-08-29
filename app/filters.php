@@ -13,6 +13,14 @@ add_filter('body_class', function (array $classes) {
         }
     }
 
+    /** Add a class based on ACF Flex module */
+    if( have_rows( 'sections' ) ) {
+        while(have_rows('sections')): the_row();
+            $template = get_row_layout();
+            $classes[] = 'has-' . str_replace('_', '-', $template);
+        endwhile;
+    }
+
     /** Add class if sidebar is active */
     if (display_sidebar()) {
         $classes[] = 'sidebar-primary';
