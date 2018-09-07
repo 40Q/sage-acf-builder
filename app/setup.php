@@ -172,3 +172,18 @@ add_action('init', function () {
     });
 
 }, 12);
+
+/**
+ * Add ACF Option pages
+ */
+if( function_exists('acf_add_options_page') ) {
+
+    acf_add_options_page([
+        'page_title'  => 'Global Settings',
+        'menu_title'  => 'Global Settings',
+        'menu_slug'   => 'global-options',
+        'capability'  => 'edit_posts',
+        'redirect'    => false
+    ]);
+  
+}
