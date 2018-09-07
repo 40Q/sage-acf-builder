@@ -187,3 +187,15 @@ if( function_exists('acf_add_options_page') ) {
     ]);
   
 }
+
+/**
+ * Example Shortcode
+ */
+add_shortcode( 'blockquote', function( $atts, $content = null ) {
+    $a = shortcode_atts([
+      'author'  => '',
+    ], $atts);
+    $output = '<blockquote>' . $content . '</blockquote>';
+    $output .= $a['author'] != '' ? '<div class="blockquote-author">' . $a['author'] . '</div>' : '';
+    return $output;
+});
