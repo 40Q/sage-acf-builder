@@ -63,7 +63,7 @@ add_filter('template_include', function ($template) {
         return get_stylesheet_directory().'/index.php';
     }
     return $template;
-}, PHP_INT_MAX);
+}, 100);
 
 /**
  * Tell WordPress how to find the compiled path of comments.blade.php
