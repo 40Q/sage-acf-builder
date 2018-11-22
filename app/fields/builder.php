@@ -269,8 +269,9 @@ $fields['shortcuts']
  */
 $fields['page_content'] = new FieldsBuilder('page_content');
 $fields['page_content']
-    ->addFlexibleContent('sections')
-        
+    ->addFlexibleContent('sections', [
+        'mc_acf_ft_true_false'=> 1
+    ])
         // Content
         ->addLayout('content')
             ->addTab('Content')
@@ -350,11 +351,14 @@ $fields['page_content']
         
         // Accordion
         ->addLayout('accordion')
-        ->addTab('Content')
-            ->addText('heading')
-            ->addFields($fields['accordion'])
-        ->addTab('Settings')
-            ->addFields($fields['section_settings'])
+            ->addTab('Content')
+                ->addText('heading')
+                ->addFields($fields['accordion'])
+            ->addTab('Settings')
+                ->addFields($fields['section_settings'])
+    
+        // Vue Test
+        ->addLayout('vue_test')
                 
     ->setLocation('post_type', '==', 'page')
     ->setGroupConfig('hide_on_screen', [

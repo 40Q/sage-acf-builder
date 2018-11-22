@@ -58,6 +58,11 @@ let webpackConfig = {
 			},
 			{
 				test: /\.css$/,
+				exclude: config.paths.assets,
+				use: [ { loader: 'vue-style-loader' }, { loader: 'css-loader' } ],
+			},
+			{
+				test: /\.css$/,
 				include: config.paths.assets,
 				use: ExtractTextPlugin.extract({
 					fallback: 'style',
