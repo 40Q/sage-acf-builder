@@ -1,0 +1,39 @@
+// rem(20px 10px) == 2rem 1rem
+@function rem($values) {
+	$remValues: '';
+	$max: length($values);
+
+	@each $value in $values {
+		$i: index($values, $value);
+		$remValues: #{$remValues + px-to-rem($value)};
+
+		@if $i < $max {
+			$remValues: #{$remValues + ' '};
+		}
+	}
+
+	@return $remValues;
+}
+
+// px-to-rem(16px) == 1.6rem
+@function px-to-rem($targetpx) {
+	@return ($targetpx/10px) + 0rem; // stylelint-disable
+}
+
+// rem(16px) == 1.6rem
+@function _rem($val) {
+	@return ($val/10px) + 0rem;
+}
+
+// px(1.6rem) == 1.6rem
+@function _px($targetrem) {
+	@return parseInt($targetrem) * 10px;
+}
+
+@function _vw($val) {
+	@if unit($val) == "rem" {
+		$val: px($val);
+	}
+	$vw-context: (1000 * 0.01) + 0px;
+	@return ($val/$vw-context) + 0vw;
+}
