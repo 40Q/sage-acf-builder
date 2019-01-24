@@ -14,12 +14,12 @@ add_filter('body_class', function (array $classes) {
     }
 
     /** Add a class based on ACF Flex module */
-    if( have_rows( 'sections' ) ) {
-        while(have_rows('sections')): the_row();
-            $template = get_row_layout();
-            $classes[] = 'has-' . str_replace('_', '-', $template);
-        endwhile;
-    }
+    // if( have_rows( 'sections' ) ) {
+    //     while(have_rows('sections')): the_row();
+    //         $template = get_row_layout();
+    //         $classes[] = 'has-' . str_replace('_', '-', $template);
+    //     endwhile;
+    // }
 
     /** Add class if sidebar is active */
     if (display_sidebar()) {
@@ -48,7 +48,7 @@ collect([
     'index', '404', 'archive', 'author', 'category', 'tag', 'taxonomy', 'date', 'home',
     'frontpage', 'page', 'paged', 'search', 'single', 'singular', 'attachment'
 ])->map(function ($type) {
-    add_filter("{$type}_template_hierarchy", __NAMESPACE__.'\\filter_templates');
+    add_filter("{$type}_template_hierarchy", __NAMESPACE__ . '\\filter_templates');
 });
 
 /**
@@ -60,7 +60,7 @@ add_filter('template_include', function ($template) {
     }, []);
     if ($template) {
         echo template($template, $data);
-        return get_stylesheet_directory().'/index.php';
+        return get_stylesheet_directory() . '/index.php';
     }
     return $template;
 }, 100);

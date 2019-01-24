@@ -6,14 +6,13 @@ use Roots\Sage\Container;
 use Roots\Sage\Assets\JsonManifest;
 use Roots\Sage\Template\Blade;
 use Roots\Sage\Template\BladeProvider;
-use StoutLogic\AcfBuilder\FieldsBuilder;
 
 /**
  * Theme assets
  */
-add_action('wp_enqueue_scripts', function () {
-    wp_enqueue_style('sage/main.css', asset_path('styles/main.css'), false, null);
-    wp_enqueue_script('sage/main.js', asset_path('scripts/main.js'), ['jquery'], null, true);
+add_action('enqueue_block_assets', function () {
+    wp_enqueue_style('sage/main.css', asset_path('styles/main.css'), ['wp-blocks'], null);
+    wp_enqueue_script('sage/main.js', asset_path('scripts/main.js'), ['jquery', 'wp-i18n', 'wp-element', 'wp-blocks', 'wp-components', 'wp-api'], null, true);
 
     if (is_single() && comments_open() && get_option('thread_comments')) {
         wp_enqueue_script('comment-reply');
@@ -79,17 +78,17 @@ add_action('after_setup_theme', function () {
 add_action('widgets_init', function () {
     $config = [
         'before_widget' => '<section class="widget %1$s %2$s">',
-        'after_widget'  => '</section>',
-        'before_title'  => '<h3>',
-        'after_title'   => '</h3>'
+        'after_widget' => '</section>',
+        'before_title' => '<h3>',
+        'after_title' => '</h3>'
     ];
     register_sidebar([
-        'name'          => __('Primary', 'sage'),
-        'id'            => 'sidebar-primary'
+        'name' => __('Primary', 'sage'),
+        'id' => 'sidebar-primary'
     ] + $config);
     register_sidebar([
-        'name'          => __('Footer', 'sage'),
-        'id'            => 'sidebar-footer'
+        'name' => __('Footer', 'sage'),
+        'id' => 'sidebar-footer'
     ] + $config);
 });
 
@@ -128,7 +127,7 @@ add_action('after_setup_theme', function () {
      * Create @asset() Blade directive
      */
     sage('blade')->compiler()->directive('asset', function ($asset) {
-        return "<?= " . __NAMESPACE__ . "\\asset_path({$asset}); ?>";
+        return '<?= ' . __NAMESPACE__ . "\\asset_path({$asset}); ?>";
     });
 
     /**
@@ -145,57 +144,125 @@ add_action('after_setup_theme', function () {
  * Initialize ACF Builder
  */
 add_action('init', function () {
-
     // Register Classes/Controller
-    collect(glob(config('theme.dir').'/app/classes/*.php'))->map(function ($field) {
-        return require_once($field);
+    collect(glob(config('theme.dir') . '/app/classes/*.php'))->map(function ($field) {
+        return require_once $field;
     });
+
+    // Test
+    // echo '<pre>';
+    // print_r(collect(glob(config('theme.dir') . '/app/fields/*.php'))->map(function ($field) {
+    //     return require_once $field;
+    // }));
+    // echo '</pre>';
+    // die();
 
     // Register Fields
-    collect(glob(config('theme.dir').'/app/fields/*.php'))->map(function ($field) {
-        return require_once($field);
+    collect(glob(config('theme.dir') . '/app/fields/*.php'))->map(function ($field) {
+        return require_once $field;
     })->map(function ($fields) {
-        $flexible_content = $fields['page_content']->build();
-        // echo "<pre>";
-        // print_r( $flexible_content['fields'][0]['layouts'] );
-        // echo "</pre>";    
-        foreach( $flexible_content['fields'][0]['layouts'] as $flex ) {
-            Builder\Config::createDynamic($flex['name'], array_column($flex['sub_fields'], 'name'));
-        }
         foreach ($fields as $field) {
-            
-            if ($field instanceof FieldsBuilder) {
-            
-                acf_add_local_field_group($field->build());
-            }
+            $block_content = $field->build();
+            Builder\Config::createDynamic(str_replace('group_', '', $block_content['key']), array_column($block_content['fields'], 'name'));
+            // echo '<pre>';
+            // print_r($block_content);
+            // echo '</pre>';
+            acf_add_local_field_group($block_content);
         }
     });
-
 }, 12);
 
 /**
  * Add ACF Option pages
  */
-if( function_exists('acf_add_options_page') ) {
-
+if (function_exists('acf_add_options_page')) {
     acf_add_options_page([
-        'page_title'  => 'Global Settings',
-        'menu_title'  => 'Global Settings',
-        'menu_slug'   => 'global-options',
-        'capability'  => 'edit_posts',
-        'redirect'    => false
+        'page_title' => 'Global Settings',
+        'menu_title' => 'Global Settings',
+        'menu_slug' => 'global-options',
+        'capability' => 'edit_posts',
+        'redirect' => false
     ]);
-  
 }
 
 /**
  * Example Shortcode
  */
-add_shortcode( 'blockquote', function( $atts, $content = null ) {
+add_shortcode('blockquote', function ($atts, $content = null) {
     $a = shortcode_atts([
-      'author'  => '',
+        'author' => '',
     ], $atts);
     $output = '<blockquote>' . $content . '</blockquote>';
     $output .= $a['author'] != '' ? '<div class="blockquote-author">' . $a['author'] . '</div>' : '';
     return $output;
 });
+
+/**
+ * ACF INIT
+ */
+add_action('acf/init', function () {
+    // check function exists
+    if (function_exists('acf_register_block')) {
+        // register a testimonial block
+        acf_register_block([
+            'name' => 'slider',
+            'title' => __('Slider'),
+            'description' => __('A custom slider block.'),
+            'render_callback' => __NAMESPACE__ . '\\my_acf_block_render_callback',
+            'category' => 'formatting',
+            'icon' => 'admin-comments',
+            'keywords' => ['slider', 'quote'],
+        ]);
+
+        acf_register_block([
+            'name' => 'about',
+            'title' => __('About'),
+            'description' => __('About'),
+            'render_callback' => __NAMESPACE__ . '\\my_acf_block_render_callback',
+            'category' => 'formatting',
+            'icon' => 'admin-comments',
+            'keywords' => ['about'],
+        ]);
+
+        acf_register_block([
+            'name' => 'steps',
+            'title' => __('Steps'),
+            'description' => __('steps'),
+            'render_callback' => __NAMESPACE__ . '\\my_acf_block_render_callback',
+            'category' => 'formatting',
+            'icon' => 'admin-comments',
+            'keywords' => ['steps'],
+        ]);
+
+        acf_register_block([
+            'name' => 'menu',
+            'title' => __('Our Menu'),
+            'description' => __('Include the Menu'),
+            'render_callback' => __NAMESPACE__ . '\\my_acf_block_render_callback',
+            'category' => 'formatting',
+            'icon' => 'admin-comments',
+            'keywords' => ['menu'],
+        ]);
+    }
+});
+
+function my_acf_block_render_callback($block)
+{
+    // convert name ("acf/testimonial") into path friendly slug ("testimonial")
+    $slug = str_replace('acf/', '', $block['name']);
+
+    // include a template part from within the "template-parts/block" folder
+    // echo STYLESHEETPATH . "/partials/block/content-{$slug}.blade.php";
+
+    $block = '';
+    $array = call_user_func(['App\Builder\Config', $slug]);
+
+    if (is_array($array)) {
+        $class = 'App\\Builder\\Block';
+        $block = new $class($array);
+    }
+
+    if (file_exists(STYLESHEETPATH . "/views/partials/block/content-{$slug}.blade.php")) {
+        echo \App\template('partials.block.content-' . $slug, ['block' => $block]);
+    }
+}

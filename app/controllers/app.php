@@ -11,6 +11,20 @@ class App extends Controller
         return get_bloginfo('name');
     }
 
+    public static function block($slug)
+    {
+        $array = call_user_func(['App\Builder\Config', $slug]);
+
+        if (is_array($array)) {
+            $class = 'App\\Builder\\Block';
+            $block = new $class($array);
+        } else {
+            return false;
+        }
+
+        return $block;
+    }
+
     public static function title()
     {
         if (is_home()) {
