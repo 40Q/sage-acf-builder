@@ -251,17 +251,15 @@ function my_acf_block_render_callback($block)
     // convert name ("acf/testimonial") into path friendly slug ("testimonial")
     $slug = str_replace('acf/', '', $block['name']);
 
-    // include a template part from within the "template-parts/block" folder
-    // echo STYLESHEETPATH . "/partials/block/content-{$slug}.blade.php";
-
     $block = '';
     $array = call_user_func(['App\Builder\Config', $slug]);
 
     if (is_array($array)) {
         $class = 'App\\Builder\\Block';
-        $block = new $class($array);
+        $block = new $class($array, $slug);
     }
 
+    // include a template part from within the "template-parts/block" folder
     if (file_exists(STYLESHEETPATH . "/views/partials/block/content-{$slug}.blade.php")) {
         echo \App\template('partials.block.content-' . $slug, ['block' => $block]);
     }

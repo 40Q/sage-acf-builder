@@ -74,46 +74,26 @@ class Block
      *
      * @param array $args
      */
-    public function __construct(array $args = [])
+    public function __construct(array $args = [], $slug)
     {
         global $count;
 
-        // foreach ( $args as $prop => $value ) {
-        // 	if ( ! property_exists( get_called_class(), $prop ) ) {
-        // 		continue;
-        // 	}
-
-        // 	$this->{$prop} = $value;
-        // }
-
+        /**
+         * Register properties
+         */
         foreach ($args as $prop) {
             $this->{$prop} = get_field($prop);
+            $this->$slug = $slug;
         }
 
-        $this->template = $this->from_camel_case(substr(get_called_class(), strrpos(get_called_class(), '\\') + 1));
-
-        $this->prefix = get_row_layout();
-
-        $this->class = 'block b-' . str_replace('_', '-', $this->prefix);
+        $this->class = 'block b-' . str_replace('_', '-', $this->slug);
 
         $this->position = intval($count++);
 
         $this->set_classes();
         $this->set_styles();
 
-        $this->id = $this->get_sub_field('id') ?: "block-{$this->position}";
-
-        // $this->title = $this->get_sub_field( 'title' );
-        // $this->text  = $this->get_sub_field( 'text' );
-
-        if (method_exists($this, $this->prefix)) {
-            call_user_func([$this, $this->prefix]);
-        }
-
-        if ($this->button && is_array($this->button)) {
-            $this->is_button_empty = $this->is_empty($this->button);
-            $this->text_group['button'] = $this->button;
-        }
+        $this->id = $this->id ?: "block-{$this->position}";
     }
 
     /**
@@ -134,129 +114,6 @@ class Block
         }
 
         return null;
-    }
-
-    public function is_empty($array_input)
-    {
-        $filtered = array_filter($array_input);
-        return empty($filtered);
-    }
-
-    /**
-     * [text_image description]
-     * @return [type] [description]
-     */
-    public function hero()
-    {
-        $this->classes[] = get_sub_field('featured') ? 'featured' : '';
-        $this->classes[] = 'color-inverse';
-
-        if ((is_array($this->image) && isset($this->image['url']))) {
-            $this->styles['background-image'] = 'url(\'' . esc_url($this->image['url']) . '\')';
-        }
-    }
-
-    /**
-     * [text_image description]
-     * @return [type] [description]
-     */
-    public function partnership()
-    {
-        if ($this->partners) {
-            $this->intro .= ' ' . '<span class="dropdown">' . $this->partners[0]['type'] . '</span> ' . $this->partners[0]['text'];
-        }
-
-        if ((is_array($this->image) && isset($this->image['url']))) {
-            $this->styles['background-image'] = 'url(\'' . esc_url($this->image['url']) . '\')';
-        }
-    }
-
-    /**
-     * [text_image description]
-     * @return [type] [description]
-     */
-    public function jumbotron()
-    {
-        $this->classes[] = 'color-inverse';
-
-        if ((is_array($this->image) && isset($this->image['url']))) {
-            $this->styles['background-image'] = 'url(\'' . esc_url($this->image['url']) . '\')';
-        }
-    }
-
-    /**
-     * [text_image description]
-     * @return [type] [description]
-     */
-    public function text_image()
-    {
-        $this->text_column_class = 'text-column col-md-6';
-        $this->image_column_class = 'image-column col-md-6';
-
-        if ($this->text_position == 'right') {
-            $this->text_column_class .= ' order-md-2';
-            $this->image_column_class .= ' order-md-1';
-        }
-
-        if ($this->side_image) {
-            $this->image_column_style = 'background-image:url(' . $this->side_image['url'] . ');';
-        }
-
-        if ($color_select = $this->color_select) {
-            $this->classes[] = 'color-inverse';
-            $this->text_column_class .= ' bg-' . $color_select;
-        }
-
-        if ($this->text_column_extra_class) {
-            $this->text_column_class .= ' ' . $this->text_column_extra_class;
-        }
-
-        $this->text_group['heading'] = $this->heading;
-        $this->text_group['tagline'] = $this->tagline;
-        $this->text_group['text'] = $this->text;
-        $this->text_group['heading_class'] = 'display-3';
-        $this->text_group['heading_class'] .= $this->color_select ? '' : ' title-divider';
-        $this->text_group['text_size'] = 'text-small';
-    }
-
-    /**
-     * [cards description]
-     * @return [type] [description]
-     */
-    public function cards()
-    {
-    }
-
-    public function set_card($card)
-    {
-        if ($this->card_types == 'card-1') {
-            $card['card_classes'] = 'has-no-image has-borders border-' . $card['color_select'];
-        }
-        return $card;
-    }
-
-    /**
-     * [text_subnavigation description]
-     * @return [type] [description]
-     */
-    public function text_subnavigation()
-    {
-        $this->text_group['heading'] = $this->heading;
-        $this->text_group['tagline'] = $this->tagline;
-        $this->text_group['text'] = $this->text;
-        $this->text_group['heading_class'] = $this->color_select ? '' : 'title-divider';
-    }
-
-    /**
-     * Obtain specific field data.
-     *
-     * @param  string $field
-     *
-     * @return mixed
-     */
-    public function get_sub_field($field)
-    {
-        return get_sub_field($this->prefix . '_' . $field);
     }
 
     /**
@@ -352,15 +209,5 @@ class Block
     public function styles()
     {
         return $this->get_parsed_styles();
-    }
-
-    public function from_camel_case($input)
-    {
-        preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $input, $matches);
-        $ret = $matches[0];
-        foreach ($ret as &$match) {
-            $match = $match == strtoupper($match) ? strtolower($match) : lcfirst($match);
-        }
-        return implode('_', $ret);
     }
 }
